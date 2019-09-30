@@ -21,6 +21,17 @@ class FullScreenViewController: UIViewController {
         bindViewModel()
     }
     
+    override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+        super.viewWillTransition(to: size, with: coordinator)
+        coordinator.animate(alongsideTransition: nil, completion: { [weak self] _ in
+            guard let `self` = self else { return }
+            self.imagesCollectionView.performBatchUpdates({ [weak self] in
+                guard let `self` = self else { return }
+                self.imagesCollectionView.setCollectionViewLayout(self.imagesCollectionView.collectionViewLayout, animated: true)
+                }, completion: nil)
+        })
+    }
+    
     private func initCollectionView() {
         imagesCollectionView.register(UINib(nibName: "FullScreenCell", bundle: nil), forCellWithReuseIdentifier: "FullScreenCell")
         imagesCollectionView.dataSource = self
@@ -39,12 +50,12 @@ extension FullScreenViewController: ViewModelBindable {
 }
 
 extension FullScreenViewController: UICollectionViewDelegateFlowLayout, UICollectionViewDelegate {
-
+    
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-         let collectionViewFrame = imagesCollectionView.frame
-         return CGSize(width: collectionViewFrame.width, height: collectionViewFrame.height)
-     }
-
+        let collectionViewFrame = imagesCollectionView.frame
+        return CGSize(width: collectionViewFrame.width, height: collectionViewFrame.height)
+    }
+    
 }
 
 extension FullScreenViewController: UICollectionViewDataSource {
@@ -59,12 +70,4 @@ extension FullScreenViewController: UICollectionViewDataSource {
     }
     
     
-}
-
-class ImageItem {
-    private var image: UIImage
-    
-    init(image: UIImage) {
-        self.image = image
-    }
 }

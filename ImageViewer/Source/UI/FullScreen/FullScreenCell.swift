@@ -15,7 +15,7 @@ class FullScreenCell: UICollectionViewCell {
     
     func bind(itemViewModel: FullScreenItemViewModel) {
         imageView.image = nil
-        itemViewModel.getImage(action: { [weak self] image in
+        itemViewModel.loadImage(action: { [weak self] image in
             self?.imageView.image = image
         })
     }
