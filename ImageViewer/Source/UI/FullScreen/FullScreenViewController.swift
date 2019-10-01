@@ -25,10 +25,11 @@ class FullScreenViewController: UIViewController {
         super.viewWillTransition(to: size, with: coordinator)
         coordinator.animate(alongsideTransition: nil, completion: { [weak self] _ in
             guard let `self` = self else { return }
-            self.imagesCollectionView.performBatchUpdates({ [weak self] in
-                guard let `self` = self else { return }
-                self.imagesCollectionView.setCollectionViewLayout(self.imagesCollectionView.collectionViewLayout, animated: true)
-                }, completion: nil)
+            self.imagesCollectionView.reloadData()
+//            self.imagesCollectionView.performBatchUpdates({ [weak self] in
+//                guard let `self` = self else { return }
+//                self.imagesCollectionView.setCollectionViewLayout(self.imagesCollectionView.collectionViewLayout, animated: true)
+//                }, completion: nil)
         })
     }
     
