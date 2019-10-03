@@ -25,17 +25,14 @@ class CameraViewController: UIViewController {
         return options
         }()
     
-    private lazy var vision: Vision = { [unowned self] in
-        return Vision.vision()
-        }()
+    private lazy var vision: Vision = { return Vision.vision() }()
     
-    private lazy var faceDetector : VisionFaceDetector = { [unowned self] in
-        return self.vision.faceDetector(options: self.options)
-        }()
+    private lazy var faceDetector : VisionFaceDetector = { [unowned self] in return self.vision.faceDetector(options: self.options) }()
     
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-        setupCamera()
+    // MARK: View controller.
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        setupCameraSession()
         setupLivePreview()
         runCamera()
     }
@@ -45,14 +42,11 @@ class CameraViewController: UIViewController {
         captureSession.stopRunning()
     }
     
-    override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
-        super.viewWillTransition(to: size, with: coordinator)
-        coordinator.animate(alongsideTransition: nil, completion: { [unowned self] _ in
-            self.setupLivePreview()
-        })
-    }
-    
-    private func setupCamera() {
+}
+
+// MARK: Camera setup
+extension CameraViewController {
+    private func setupCameraSession() {
         captureSession = AVCaptureSession()
         captureSession.sessionPreset = .medium
         guard let backCamera = getDevice(position: .front) else {
@@ -73,26 +67,27 @@ class CameraViewController: UIViewController {
     }
     
     private func setupLivePreview() {
-        
         videoPreviewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
-        
         videoPreviewLayer.videoGravity = .resizeAspect
-        videoPreviewLayer.connection?.videoOrientation = .portrait
         videoPreviewLayer.frame = cameraPreview.bounds
+        videoPreviewLayer.connection?.videoOrientation = getVideoOrientationAccording(to: UIDevice.current.orientation)
+        cameraPreview.layer.sublayers?.removeAll()
         cameraPreview.layer.addSublayer(videoPreviewLayer)
-    }
-    
-    private func runCamera() {
-        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            guard let strongSelf = self else { return }
-            strongSelf.captureSession.startRunning()
-        }
     }
     
     private func getDevice(position: AVCaptureDevice.Position) -> AVCaptureDevice? {
         return AVCaptureDevice.default(.builtInWideAngleCamera, for: AVMediaType.video, position: position)
     }
     
+    private func runCamera() {
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            self?.captureSession.startRunning()
+        }
+    }
+}
+
+// MARK: Helpers.
+extension CameraViewController {
     private func imageOrientation(deviceOrientation: UIDeviceOrientation, cameraPosition: AVCaptureDevice.Position) -> VisionDetectorImageOrientation {
         switch deviceOrientation {
         case .portrait:
@@ -105,16 +100,21 @@ class CameraViewController: UIViewController {
             return cameraPosition == .front ? .topRight : .bottomRight
         case .faceDown, .faceUp, .unknown:
             return .leftTop
+        default:
+            return .leftTop
         }
     }
     
-    private func check() {
-        let cameraPosition = AVCaptureDevice.Position.front  // Set to the capture device you used.
-        let metadata = VisionImageMetadata()
-        metadata.orientation = imageOrientation(
-            deviceOrientation: UIDevice.current.orientation,
-            cameraPosition: cameraPosition
-        )
+    private func getVideoOrientationAccording(to orientation: UIDeviceOrientation) -> AVCaptureVideoOrientation {
+        switch orientation {
+        case .landscapeLeft:
+            return .landscapeLeft
+        case .landscapeRight:
+            return .landscapeRight
+        case .portraitUpsideDown:
+            return .portraitUpsideDown
+        default:
+            return .portrait
+        }
     }
-    
 }

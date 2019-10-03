@@ -8,7 +8,6 @@
 
 import Foundation
 import UIKit
-import Pods_ImageViewer
 
 class FullScreenViewController: UIViewController {
     
